@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:todoapp/data/data.dart';
+import 'package:todoapp/widget/dialog_widget.dart';
 import 'package:todoapp/widget/tile_widget.dart';
 
 class App extends StatefulWidget {
@@ -9,32 +12,83 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  List toDoList = [
-    ["stuff", false],
-    ["stuff", false],
-    ["stuff", false],
-  ];
+  final _myBox = Hive.box('mybox');
+  ToDoDataBase db = ToDoDataBase();
+
+  final _controller = TextEditingController();
+
+  @override
+  void initState() {
+    if (_myBox.get("TODOLIST") == null) {
+      db.createInitialData();
+    } else {
+      db.loadData();
+    }
+    super.initState();
+  }
+
   void checkBoxChanged(bool? value, int index) {
     setState(() {
-      toDoList[index][1] = !toDoList[index][1];
+      db.toDoList[index][1] = !db.toDoList[index][1];
     });
+    db.updateDataBase();
+  }
+
+  void saveTask() {
+    if (_controller.text.isNotEmpty) {
+      setState(() {
+        db.toDoList.add([_controller.text, false]);
+        _controller.text = '';
+        Navigator.of(context).pop();
+      });
+      db.updateDataBase();
+    }
+  }
+
+  void deleteTask(int index) {
+    setState(() {
+      db.toDoList.removeAt(index);
+    });
+    db.updateDataBase();
+  }
+
+  void createTask() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return DialogWidget(
+          controller: _controller,
+          onCancel: () {
+            Navigator.of(context).pop();
+          },
+          onSave: saveTask,
+        );
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.yellow[200],
+        backgroundColor: const Color.fromARGB(255, 49, 49, 49),
         appBar: AppBar(
-          title: Text("To-Do"),
+          backgroundColor: const Color.fromARGB(255, 49, 49, 49),
+          title: const Text("To-Do"),
           centerTitle: true,
         ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.redAccent,
+          onPressed: createTask,
+          child: const Icon(Icons.add),
+        ),
         body: ListView.builder(
-          itemCount: toDoList.length,
+          itemCount: db.toDoList.length,
           itemBuilder: (context, index) {
-            var itemindex = toDoList[index];
+            var itemindex = db.toDoList[index];
             return TileWidget(
                 onChanged: (value) => checkBoxChanged(value, index),
                 taskCompleted: itemindex[1],
+                deleteFunction: (context) => deleteTask(index),
                 taskname: itemindex[0]);
           },
         ));
