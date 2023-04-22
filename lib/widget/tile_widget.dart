@@ -6,11 +6,13 @@ class TileWidget extends StatelessWidget {
   final bool taskCompleted;
   final Function(bool?)? onChanged;
   final Function(BuildContext)? deleteFunction;
+  final VoidCallback onEdited;
   const TileWidget(
       {super.key,
       required this.deleteFunction,
       required this.onChanged,
       required this.taskCompleted,
+      required this.onEdited,
       required this.taskname});
 
   @override
@@ -36,19 +38,37 @@ class TileWidget extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Checkbox(
-                value: taskCompleted,
-                onChanged: onChanged,
-                activeColor: const Color.fromARGB(255, 252, 64, 64),
+              Row(
+                children: [
+                  Checkbox(
+                    value: taskCompleted,
+                    onChanged: onChanged,
+                    activeColor: const Color.fromARGB(255, 252, 64, 64),
+                  ),
+                  Text(
+                    taskname,
+                    style: TextStyle(
+                        color: Colors.white,
+                        decoration: taskCompleted
+                            ? TextDecoration.lineThrough
+                            : TextDecoration.none),
+                  )
+                ],
               ),
-              Text(
-                taskname,
-                style: TextStyle(
-                    color: Colors.white,
-                    decoration: taskCompleted
-                        ? TextDecoration.lineThrough
-                        : TextDecoration.none),
+              Material(
+                shape: const CircleBorder(),
+                color: Colors.transparent,
+                clipBehavior: Clip.hardEdge,
+                child: IconButton(
+                    onPressed: onEdited,
+                    splashColor: Colors.red,
+                    focusColor: Colors.red,
+                    icon: Icon(
+                      Icons.edit,
+                      color: Colors.redAccent,
+                    )),
               )
             ],
           ),

@@ -67,6 +67,30 @@ class _AppState extends State<App> {
     );
   }
 
+  void editTask(int index) {
+    String taskText = db.toDoList[index][0];
+    _controller.text = taskText;
+    showDialog(
+      context: context,
+      builder: (context) {
+        return DialogWidget(
+          controller: _controller,
+          onCancel: () {
+            Navigator.of(context).pop();
+          },
+          onSave: () {
+            setState(() {
+              db.toDoList[index][0] = _controller.text;
+              _controller.text = '';
+              Navigator.of(context).pop();
+            });
+            db.updateDataBase();
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -86,6 +110,7 @@ class _AppState extends State<App> {
           itemBuilder: (context, index) {
             var itemindex = db.toDoList[index];
             return TileWidget(
+                onEdited: () => editTask(index),
                 onChanged: (value) => checkBoxChanged(value, index),
                 taskCompleted: itemindex[1],
                 deleteFunction: (context) => deleteTask(index),
